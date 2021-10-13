@@ -6,14 +6,8 @@ import (
 	"os"
 )
 
-const (
-	debug = iota
-	info
-	warn
-)
-
 type Params struct {
-	Level int
+	Level string
 	File  string
 }
 
@@ -35,13 +29,15 @@ func NewLogger(params *Params) (l *Logger) {
 		Logger: logger,
 	}
 
-	level := logrus.ErrorLevel
-	if params.Level <= debug {
+	level := logrus.InfoLevel
+	if params.Level == "debug" {
 		level = logrus.DebugLevel
-	} else if params.Level == info {
+	} else if params.Level == "info" {
 		level = logrus.InfoLevel
-	} else if params.Level == warn {
+	} else if params.Level == "warn" {
 		level = logrus.WarnLevel
+	} else if params.Level == "error" {
+		level = logrus.ErrorLevel
 	}
 	l.Logger.SetLevel(level)
 
