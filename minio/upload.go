@@ -2,9 +2,12 @@ package minio
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"github.com/fatih/structs"
 	"github.com/minio/minio-go/v7"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -122,8 +125,72 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 			"File uploaded",
 		)
 		logger.DebugWithFields(structs.Map(uploadInfo), "File uploaded")
+
+
+		if uploadParams.Md5sum {
+			md5sum, err := md5sum(file)
+			if err != nil {
+				if uploadParams.StopOnError {
+					logger.Fatal(err)
+				} else {
+					logger.Error(err)
+				}
+				continue
+			}
+
+			if md5sum != uploadInfo.ETag {
+				if uploadParams.StopOnError {
+					logger.FatalWithFields(map[string]interface{}{
+						"md5sum": md5sum,
+						"ETag": uploadInfo.ETag,
+					},
+						"md5sums doesn't match",
+					)
+				} else {
+					logger.ErrorWithFields(map[string]interface{}{
+						"md5sum": md5sum,
+						"ETag": uploadInfo.ETag,
+					},
+						"md5sums doesn't match",
+					)
+				}
+				continue
+			}
+
+			logger.DebugWithFields(map[string]interface{}{
+				"md5sum": md5sum,
+				"ETag": uploadInfo.ETag,
+			},
+				"md5sums match",
+			)
+		}
 	}
 
+}
+
+func md5sum(file string) (string, error) {
+	var md5Str string
+
+	f, err := os.Open(file)
+	if err != nil {
+		return md5Str, err
+	}
+
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+
+	hash := md5.New()
+
+	if _, err := io.Copy(hash, f); err != nil {
+		return md5Str, err
+	}
+
+	hashInBytes := hash.Sum(nil)[:16]
+
+	md5Str = hex.EncodeToString(hashInBytes)
+
+	return md5Str, nil
 }
 
 func getFiles(path string) ([]string, error) {
