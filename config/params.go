@@ -16,7 +16,7 @@ type Params struct {
 
 func NewParams(config string) (p *Params, err error) {
 	if _, err = os.Stat(config); os.IsNotExist(err) {
-		fmt.Printf("Configuration file: %s does not exist, %v\n", config, err)
+		err = fmt.Errorf("configuration file (%s) does not exist: %v", config, err)
 		return nil, err
 	}
 
@@ -24,13 +24,13 @@ func NewParams(config string) (p *Params, err error) {
 	viper.SetConfigType("yaml")
 	err = viper.ReadInConfig()
 	if err != nil {
-		fmt.Printf("Unable to read config file, %v\n", err)
+		err = fmt.Errorf("unable to read config file (%s): %v", config, err)
 		return nil, err
 	}
 
 	err = viper.Unmarshal(&p)
 	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v\n", err)
+		err = fmt.Errorf("unable to decode config (%s) into struct, %v", config, err)
 		return nil, err
 	}
 
