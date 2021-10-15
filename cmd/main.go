@@ -18,6 +18,9 @@ func init() {
 	configFile := "/etc/mt/config.yml"
 	flaggy.String(&configFile, "c", "config", "Path of the configuration file in YAML format")
 
+	logLevel := ""
+	flaggy.String(&logLevel, "l", "log-level", "Log level (Overwrites config file. Available options are debug, info, warn and error.")
+
 	// define "upload" subcommand and its flags
 	upload := flaggy.NewSubcommand("upload")
 	upload.Description = "Upload files to MinIO"
@@ -51,6 +54,11 @@ func init() {
 	params, err := config.NewParams(configFile)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Overwrite log level with flag
+	if logLevel != "" {
+		params.Log.Level = logLevel
 	}
 
 	// Get logger
