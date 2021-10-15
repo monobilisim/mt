@@ -69,7 +69,7 @@ func init() {
 		serverName := strings.Split(destination, "/")[0]
 		serverParams, err := params.Server(serverName)
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 
 		minio.Upload(
