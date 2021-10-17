@@ -121,10 +121,12 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{})
 
 		if err != nil {
-			errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+			errorOrFatal(logger, notifier, uploadParams,
+				map[string]interface{}{
 				"file": file,
 				"error": err,
 			},
+				"`" + file + "` konumundaki dosya MinIO'ya yüklenemedi. (Alınan hata: " + err.Error() + ") Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
 			"Unable to upload file")
 			continue
 		}
@@ -139,19 +141,24 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		if uploadParams.Md5sum {
 			md5sum, err := md5sum(file)
 			if err != nil {
-				errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+				errorOrFatal(logger, notifier, uploadParams,
+					map[string]interface{}{
 					"file": file,
 					"error": err,
 				},
+					"`" + file + "` konumundaki dosya MinIO'ya yüklendi, ancak MD5 hash kontrolü için lokal dosyanın hash'i alınamadı. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
 				"Unable to get md5sum of the file")
 				continue
 			}
 
 			if md5sum != uploadInfo.ETag {
-				errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+				errorOrFatal(logger, notifier, uploadParams,
+
+					map[string]interface{}{
 					"md5sum": md5sum,
 					"ETag": uploadInfo.ETag,
-				},
+					},
+					"`" + file + "` konumundaki dosya MinIO'ya yüklendi, ancak yüklenen dosya ile lokal dosyanın MD5 hash'leri aynı değil. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
 				"md5sums don't match")
 				continue
 			}
@@ -217,8 +224,9 @@ func notify(notifier Notifier, logger Logger, params UploadParams, text string) 
 	}
 }
 
-func errorOrFatal(logger Logger, stopOnError bool, fields map[string]interface{}, args ...interface{}) {
-	if stopOnError {
+func errorOrFatal(logger Logger, notifier Notifier, params UploadParams, fields map[string]interface{}, notification string, args ...interface{}) {
+	if params.StopOnError {
+		notify(notifier, logger, params, notification)
 		logger.FatalWithFields(fields, args)
 	} else {
 		logger.ErrorWithFields(fields, args)
