@@ -79,8 +79,8 @@ func main() {
 		minio.Upload(
 			logger,
 			notifier,
-			&serverParams,
-			&minio.UploadParams{
+			serverParams,
+			minio.UploadParams{
 				Source:            source,
 				Destination:       strings.TrimPrefix(destination, serverName + "/"),
 				Recursive:         recursive,
