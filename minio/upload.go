@@ -121,11 +121,11 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{})
 
 		if err != nil {
-			if uploadParams.StopOnError {
-				logger.Fatal(err)
-			} else {
-				logger.Error(err)
-			}
+			errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+				"file": file,
+				"error": err,
+			},
+			"Unable to upload file")
 			continue
 		}
 		logger.InfoWithFields(map[string]interface{}{
@@ -139,30 +139,20 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		if uploadParams.Md5sum {
 			md5sum, err := md5sum(file)
 			if err != nil {
-				if uploadParams.StopOnError {
-					logger.Fatal(err)
-				} else {
-					logger.Error(err)
-				}
+				errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+					"file": file,
+					"error": err,
+				},
+				"Unable to get md5sum of the file")
 				continue
 			}
 
 			if md5sum != uploadInfo.ETag {
-				if uploadParams.StopOnError {
-					logger.FatalWithFields(map[string]interface{}{
-						"md5sum": md5sum,
-						"ETag": uploadInfo.ETag,
-					},
-						"md5sums doesn't match",
-					)
-				} else {
-					logger.ErrorWithFields(map[string]interface{}{
-						"md5sum": md5sum,
-						"ETag": uploadInfo.ETag,
-					},
-						"md5sums doesn't match",
-					)
-				}
+				errorOrFatal(logger, uploadParams.StopOnError, map[string]interface{}{
+					"md5sum": md5sum,
+					"ETag": uploadInfo.ETag,
+				},
+				"md5sums don't match")
 				continue
 			}
 
@@ -224,6 +214,14 @@ func notify(notifier Notifier, logger Logger, params UploadParams, text string) 
 				"Unable to send notification",
 			)
 		}
+	}
+}
+
+func errorOrFatal(logger Logger, stopOnError bool, fields map[string]interface{}, args ...interface{}) {
+	if stopOnError {
+		logger.FatalWithFields(fields, args)
+	} else {
+		logger.ErrorWithFields(fields, args)
 	}
 }
 
