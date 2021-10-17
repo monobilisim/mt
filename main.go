@@ -20,7 +20,7 @@ func main() {
 	flaggy.String(&configFile, "c", "config", "Path of the configuration file in YAML format")
 
 	logLevel := ""
-	flaggy.String(&logLevel, "l", "log-level", "Log level (Overwrites config file. Available options are debug, info, warn and error.")
+	flaggy.String(&logLevel, "l", "log-level", "Log level (Overwrites config file. Available options are debug, info, warn and error.)")
 
 	// define "upload" subcommand and its flags
 	upload := flaggy.NewSubcommand("upload")
@@ -36,11 +36,12 @@ func main() {
 	var recursive bool
 	upload.Bool(&recursive, "r", "recursive", "Upload a directory recursively to MinIO")
 
+	var md5sum bool
+	upload.Bool(&md5sum, "md5", "md5-validation", "Validate uploads with md5sum calculation")
+
 	var removeSourceFiles bool
 	upload.Bool(&removeSourceFiles, "rm", "remove-source-files", "Remove source files after successful upload")
 
-	var md5sum bool
-	upload.Bool(&md5sum, "md5", "md5sum", "Validate uploads with md5sum calculation")
 
 	var stopOnError bool
 	upload.Bool(&stopOnError, "soe", "stop-on-error", "Stop on the first error and don't try to upload other files")
