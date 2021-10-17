@@ -33,7 +33,14 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 		},
 			"Unable to open source path",
 		)
-		notifier.Notify("Kaynak dosya/dizin açılamadı: " + uploadParams.Source)
+		err = notifier.Notify("Kaynak dosya/dizin açılamadı: " + uploadParams.Source)
+		if err != nil {
+			logger.WarnWithFields(map[string]interface{}{
+				"error": err,
+			},
+			"Unable to send notification",
+			)
+		}
 	}
 	sourceAbs, err := filepath.Abs(sourceFile.Name())
 	sourceBase := filepath.Base(sourceAbs)
@@ -43,7 +50,14 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 		},
 			"Unable to get absolute path of the source",
 		)
-		notifier.Notify("Kaynak dosya/dizinin tam yolu belirlenemedi: " + uploadParams.Source)
+		err = notifier.Notify("Kaynak dosya/dizinin tam yolu belirlenemedi: " + uploadParams.Source)
+		if err != nil {
+			logger.WarnWithFields(map[string]interface{}{
+				"error": err,
+			},
+				"Unable to send notification",
+			)
+		}
 	}
 	sourceFileInfo, err := sourceFile.Stat()
 	if err != nil {
@@ -52,7 +66,14 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 		},
 			"Unable to stat source path",
 		)
-		notifier.Notify("Kaynak dosya/dizin bilgileri alınamadı: " + uploadParams.Source)
+		err = notifier.Notify("Kaynak dosya/dizin bilgileri alınamadı: " + uploadParams.Source)
+		if err != nil {
+			logger.WarnWithFields(map[string]interface{}{
+				"error": err,
+			},
+				"Unable to send notification",
+			)
+		}
 	}
 	sourceIsDir := sourceFileInfo.IsDir()
 	logger.DebugWithFields(map[string]interface{}{
@@ -82,7 +103,14 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 	c, err := NewClient(serverParams)
 	if err != nil {
 		logger.Fatal(err)
-		notifier.Notify("MinIO client oluşturulamadı: " + err.Error())
+		err = notifier.Notify("MinIO client oluşturulamadı: " + err.Error())
+		if err != nil {
+			logger.WarnWithFields(map[string]interface{}{
+				"error": err,
+			},
+				"Unable to send notification",
+			)
+		}
 	}
 	logger.DebugWithFields(map[string]interface{}{
 		"client": c.Client,
@@ -94,12 +122,26 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 	if sourceIsDir {
 		if !uploadParams.Recursive {
 			logger.Fatal(errors.New("recursive flag must be used to upload directories"))
-			notifier.Notify("\"recursive\" parametresi kullanılmadığı için dizin yüklenemedi.")
+			err = notifier.Notify("\"recursive\" parametresi kullanılmadığı için dizin yüklenemedi.")
+			if err != nil {
+				logger.WarnWithFields(map[string]interface{}{
+					"error": err,
+				},
+					"Unable to send notification",
+				)
+			}
 		}
 		sourceFiles, err = getFiles(sourceAbs)
 		if err != nil {
 			logger.Fatal(err)
-			notifier.Notify(sourceAbs + " dizinindeki dosyalar alınamadı.")
+			err = notifier.Notify(sourceAbs + " dizinindeki dosyalar alınamadı.")
+			if err != nil {
+				logger.WarnWithFields(map[string]interface{}{
+					"error": err,
+				},
+					"Unable to send notification",
+				)
+			}
 		}
 	} else {
 		sourceFiles = append(sourceFiles, sourceAbs)
@@ -184,7 +226,14 @@ func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams
 	}
 
 	if len(sourceFiles) > len(uploaded) {
-		notifier.Notify("Bazı dosyalar MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
+		err = notifier.Notify("Bazı dosyalar MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
+		if err != nil {
+			logger.WarnWithFields(map[string]interface{}{
+				"error": err,
+			},
+				"Unable to send notification",
+			)
+		}
 	}
 
 }
