@@ -1,6 +1,6 @@
 
 
-* Yapılandırma dosyası /etc/mt/config.yml konumuna kaydedilir.
+* [Yapılandırma dosyası](/config/config_sample.yml) /etc/mt/config.yml konumuna kaydedilir.
 * Uygulama /usr/local/bin/mt konumuna kaydedilir ve çalıştırılabilir yapılır.
 * Örnek olarak, Asterisk sunucuları için görüşme kayıtlarını yedeklemek üzere aşağıdaki komut cron görevi olarak eklenir:
     ```
