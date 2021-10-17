@@ -31,9 +31,12 @@ func (n *Notifier) Notify(text string) error {
 	if err != nil {
 		hostname = "Hostname belirlenemedi"
 	}
-	text = "*[ " + hostname + "* | _" + strings.Join(ipAddresses, " - ") + "_ *]* " + text
+	text = "*[ " + hostname + "* | _" + strings.Join(ipAddresses, " - ") + "_ *]*\n\n" + text
+	text = text + "\n\n*Komut:* `" + strings.Join(os.Args, " ") + "`"
 
-	message := gorocket.HookMessage{Text: text}
+	message := gorocket.HookMessage{
+		Text: text,
+	}
 	_, err = n.Hooks(&message, n.Params.Token)
 	return err
 }

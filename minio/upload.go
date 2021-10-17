@@ -126,7 +126,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 				"file": file,
 				"error": err,
 			},
-				"`" + file + "` konumundaki dosya MinIO'ya yüklenemedi. (Alınan hata: " + err.Error() + ") Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
+				"`" + file + "` konumundaki dosya MinIO'ya yüklenemedi. (Alınan hata: `" + err.Error() + "`) Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
 			"Unable to upload file")
 			continue
 		}
@@ -180,8 +180,10 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		uploaded = append(uploaded, file)
 	}
 
-	if len(sourceFiles) > len(uploaded) {
-		notify(notifier, logger, uploadParams, "Bazı dosyalar MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
+	notUploaded := len(sourceFiles) - len(uploaded)
+
+	if notUploaded > 0 {
+		notify(notifier, logger, uploadParams, strconv.Itoa(notUploaded) + " dosya MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
 	}
 
 }
