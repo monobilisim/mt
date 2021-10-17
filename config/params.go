@@ -6,12 +6,14 @@ import (
 	"github.com/spf13/viper"
 	"mt/log"
 	"mt/minio"
+	"mt/notify"
 	"os"
 )
 
 type Params struct {
 	Minio map[string]minio.Params
 	Log log.Params
+	Notify notify.Params
 }
 
 func NewParams(config string) (p *Params, err error) {

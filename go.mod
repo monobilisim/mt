@@ -3,6 +3,7 @@ module mt
 go 1.13
 
 require (
+	github.com/badkaktus/gorocket v0.0.0-20200908202144-20b58b835e51
 	github.com/fatih/structs v1.1.0
 	github.com/integrii/flaggy v1.4.4
 	github.com/minio/minio-go/v7 v7.0.14

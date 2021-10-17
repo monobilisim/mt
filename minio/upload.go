@@ -24,7 +24,7 @@ type UploadParams struct {
 	NotifyErrors      bool
 }
 
-func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
+func Upload(logger Logger, notifier Notifier, serverParams *Params, uploadParams *UploadParams) {
 	uploadParams.Source = strings.TrimSuffix(uploadParams.Source, "/")
 	sourceFile, err := os.Open(uploadParams.Source)
 	if err != nil {
@@ -33,6 +33,7 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 		},
 			"Unable to open source path",
 		)
+		notifier.Notify("Kaynak dosya/dizin açılamadı: " + uploadParams.Source)
 	}
 	sourceAbs, err := filepath.Abs(sourceFile.Name())
 	sourceBase := filepath.Base(sourceAbs)
@@ -42,6 +43,7 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 		},
 			"Unable to get absolute path of the source",
 		)
+		notifier.Notify("Kaynak dosya/dizinin tam yolu belirlenemedi: " + uploadParams.Source)
 	}
 	sourceFileInfo, err := sourceFile.Stat()
 	if err != nil {
@@ -50,6 +52,7 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 		},
 			"Unable to stat source path",
 		)
+		notifier.Notify("Kaynak dosya/dizin bilgileri alınamadı: " + uploadParams.Source)
 	}
 	sourceIsDir := sourceFileInfo.IsDir()
 	logger.DebugWithFields(map[string]interface{}{
@@ -79,6 +82,7 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 	c, err := NewClient(serverParams)
 	if err != nil {
 		logger.Fatal(err)
+		notifier.Notify("MinIO client oluşturulamadı: " + err.Error())
 	}
 	logger.DebugWithFields(map[string]interface{}{
 		"client": c.Client,
@@ -90,15 +94,19 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 	if sourceIsDir {
 		if !uploadParams.Recursive {
 			logger.Fatal(errors.New("recursive flag must be used to upload directories"))
+			notifier.Notify("\"recursive\" parametresi kullanılmadığı için dizin yüklenemedi.")
 		}
 		sourceFiles, err = getFiles(sourceAbs)
 		if err != nil {
 			logger.Fatal(err)
+			notifier.Notify(sourceAbs + " dizinindeki dosyalar alınamadı.")
 		}
 	} else {
 		sourceFiles = append(sourceFiles, sourceAbs)
 	}
 	logger.Info(strconv.Itoa(len(sourceFiles)) + " files will be uploaded")
+
+	uploaded := make([]string, 0)
 
 	for _, file := range sourceFiles {
 		objectName := objectNamePrefix + strings.TrimPrefix(file, sourcePrefix)
@@ -111,6 +119,7 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 		)
 
 		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{})
+
 		if err != nil {
 			if uploadParams.StopOnError {
 				logger.Fatal(err)
@@ -163,7 +172,19 @@ func Upload(logger Logger, serverParams *Params, uploadParams *UploadParams) {
 			},
 				"md5sums match",
 			)
+
+			if uploadParams.RemoveSourceFiles {
+				err = os.Remove(file)
+				if err != nil {
+					logger.Error(err)
+				}
+			}
 		}
+		uploaded = append(uploaded, file)
+	}
+
+	if len(sourceFiles) > len(uploaded) {
+		notifier.Notify("Bazı dosyalar MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
 	}
 
 }

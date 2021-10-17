@@ -56,30 +56,6 @@ func NewLogger(params *Params) (l *Logger) {
 	return
 }
 
-func (l *Logger) Debug(args ...interface{}) {
-	l.Logger.Debug(args)
-}
-
-func (l *Logger) Info(args ...interface{}) {
-	l.Logger.Info(args)
-}
-
-func (l *Logger) Warn(args ...interface{}) {
-	l.Logger.Warn(args)
-}
-
-func (l *Logger) Error(args ...interface{}) {
-	l.Logger.Error(args)
-}
-
-func (l *Logger) Fatal(args ...interface{}) {
-	l.Logger.Fatal(args)
-}
-
-func (l *Logger) Panic(args ...interface{}) {
-	l.Logger.Panic(args)
-}
-
 func (l *Logger) DebugWithFields(fields map[string]interface{}, args ...interface{}) {
 	l.Logger.WithFields(fields).Debug(args)
 }
