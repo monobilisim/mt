@@ -92,4 +92,7 @@ func main() {
 			})
 
 	}
+
+	// If no subcommand used, print help and exit
+	flaggy.ShowHelpAndExit("No subcommands passed")
 }
