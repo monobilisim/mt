@@ -174,6 +174,12 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 				err = os.Remove(file)
 				if err != nil {
 					logger.Error(err)
+				} else {
+					logger.InfoWithFields(map[string]interface{}{
+						"file": file,
+					},
+					"Source file removed",
+					)
 				}
 			}
 		}
