@@ -1,8 +1,10 @@
 package minio
 
 import (
+	"crypto/tls"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"net/http"
 )
 
 type Client struct {
@@ -15,13 +17,20 @@ type Params struct {
 	AccessKey string
 	SecretKey string
 	Secure    bool
+	InsecureSkipVerify bool
 }
 
 func NewClient(params *Params) (*Client, error) {
-	minioClient, err := minio.New(params.Endpoint, &minio.Options{
+	minioOptions := &minio.Options{
 		Creds:  credentials.NewStaticV4(params.AccessKey, params.SecretKey, ""),
 		Secure: params.Secure,
-	})
+	}
+	if params.InsecureSkipVerify {
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		minioOptions.Transport = customTransport
+	}
+	minioClient, err := minio.New(params.Endpoint, minioOptions)
 	if err != nil {
 		return nil, err
 	}
