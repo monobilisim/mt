@@ -42,7 +42,6 @@ func main() {
 	var removeSourceFiles bool
 	upload.Bool(&removeSourceFiles, "rm", "remove-source-files", "Remove source files after successful upload")
 
-
 	var stopOnError bool
 	upload.Bool(&stopOnError, "soe", "stop-on-error", "Stop on the first error and don't try to upload other files")
 
@@ -83,7 +82,7 @@ func main() {
 			serverParams,
 			minio.UploadParams{
 				Source:            source,
-				Destination:       strings.TrimPrefix(destination, serverName + "/"),
+				Destination:       strings.TrimPrefix(destination, serverName+"/"),
 				Recursive:         recursive,
 				RemoveSourceFiles: removeSourceFiles,
 				Md5sum:            md5sum,
@@ -91,8 +90,8 @@ func main() {
 				NotifyErrors:      notifyErrors,
 			})
 
+	} else {
+		// If no subcommand used, print help and exit
+		flaggy.ShowHelpAndExit("No subcommands passed")
 	}
-
-	// If no subcommand used, print help and exit
-	flaggy.ShowHelpAndExit("No subcommands passed")
 }
