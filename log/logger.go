@@ -109,6 +109,7 @@ func levelsAbove(level logrus.Level) []logrus.Level {
 	if level == logrus.DebugLevel {
 		levels = append(levels, logrus.ErrorLevel)
 		levels = append(levels, logrus.WarnLevel)
+		levels = append(levels, logrus.InfoLevel)
 		levels = append(levels, logrus.DebugLevel)
 	}
 
