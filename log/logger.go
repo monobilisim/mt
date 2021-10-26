@@ -2,13 +2,17 @@ package log
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/writer"
+	"github.com/snowzach/rotatefilehook"
 	"os"
+	"time"
 )
 
 type Params struct {
 	Level string
 	File  string
+	MaxSize int
+	MaxBackups int
+	MaxAge int
 }
 
 type Logger struct {
@@ -17,6 +21,16 @@ type Logger struct {
 }
 
 func NewLogger(params *Params) (l *Logger) {
+	if params.MaxSize == 0 {
+		params.MaxSize = 50
+	}
+	if params.MaxBackups == 0 {
+		params.MaxBackups = 3
+	}
+	if params.MaxAge == 0 {
+		params.MaxAge = 30
+	}
+
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp:             true,
@@ -42,15 +56,28 @@ func NewLogger(params *Params) (l *Logger) {
 	l.Logger.SetLevel(level)
 
 	if params.File != "" {
-		file, err := os.OpenFile(params.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		_, err := os.OpenFile(params.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			logrus.Error(err)
 			return
 		}
-		l.Logger.AddHook(&writer.Hook{
-			Writer:    file,
-			LogLevels: levelsAbove(level),
+
+		rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
+			Filename:   params.File,
+			MaxSize:    params.MaxSize,
+			MaxBackups: params.MaxBackups,
+			MaxAge:     params.MaxAge, //days
+			Level:      level,
+			Formatter: &logrus.JSONFormatter{
+				TimestampFormat: time.RFC3339,
+			},
 		})
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+
+		l.Logger.AddHook(rotateFileHook)
 	}
 
 	return
@@ -78,42 +105,6 @@ func (l *Logger) FatalWithFields(fields map[string]interface{}, args ...interfac
 
 func (l *Logger) PanicWithFields(fields map[string]interface{}, args ...interface{}) {
 	l.Logger.WithFields(fields).Panic(args)
-}
-
-func levelsAbove(level logrus.Level) []logrus.Level {
-	levels := make([]logrus.Level, 0)
-
-	levels = append(levels, logrus.PanicLevel)
-
-	if level == logrus.FatalLevel {
-		levels = append(levels, logrus.FatalLevel)
-	}
-
-	if level == logrus.ErrorLevel {
-		levels = append(levels, logrus.FatalLevel)
-		levels = append(levels, logrus.ErrorLevel)
-	}
-
-	if level == logrus.WarnLevel {
-		levels = append(levels, logrus.ErrorLevel)
-		levels = append(levels, logrus.WarnLevel)
-
-	}
-
-	if level == logrus.InfoLevel {
-		levels = append(levels, logrus.ErrorLevel)
-		levels = append(levels, logrus.WarnLevel)
-		levels = append(levels, logrus.InfoLevel)
-	}
-
-	if level == logrus.DebugLevel {
-		levels = append(levels, logrus.ErrorLevel)
-		levels = append(levels, logrus.WarnLevel)
-		levels = append(levels, logrus.InfoLevel)
-		levels = append(levels, logrus.DebugLevel)
-	}
-
-	return levels
 }
 
 func Fatal(args ...interface{})  {
