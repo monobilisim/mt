@@ -4,7 +4,7 @@
 * Uygulamanın son sürümü, https://gitlab.com/monobilisim/mt/-/releases sayfasından indirilip /usr/local/bin/mt konumuna kaydedilir ve çalıştırılabilir yapılır.
 * Örnek olarak, Asterisk sunucuları için görüşme kayıtlarını yedeklemek üzere aşağıdaki komut cron görevi olarak eklenir:
     ```
-    /usr/local/bin/mt upload --source=/var/spool/asterisk/monitor/$(date -d "yesterday" +%Y/%m/%d) --destination=minio/monitor/$(date -d "yesterday" +%Y/%m)/ -r -l debug -md5 -n -soe -rm
+    /usr/local/bin/mt upload --source=/var/spool/asterisk/monitor/$(date -d yesterday +\%Y/\%m/\%d) --destination=minio/monitor/$(date -d yesterday +\%Y/\%m)/ -r -l debug -md5 -n -soe -rm
     ```
   * Genel parametreler:
     * `--config` / `-c`: Yapılandırma dosyası konumu. (Kullanılmazsa /etc/mt/config.yml konumuna bakılır.)
