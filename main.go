@@ -13,7 +13,7 @@ func main() {
 	// General info
 	flaggy.SetName("MinIO Toolkit")
 	flaggy.SetDescription("A toolkit for various MinIO operations")
-	flaggy.SetVersion("0.3.1")
+	flaggy.SetVersion("0.4.2")
 
 	// define main flags
 	configFile := "/etc/mt/config.yml"
