@@ -13,7 +13,7 @@ func main() {
 	// General info
 	flaggy.SetName("MinIO Toolkit")
 	flaggy.SetDescription("A toolkit for various MinIO operations")
-	flaggy.SetVersion("0.4.2")
+	flaggy.SetVersion("0.5.0")
 
 	// define main flags
 	configFile := "/etc/mt/config.yml"
@@ -47,6 +47,9 @@ func main() {
 
 	var notifyErrors bool
 	upload.Bool(&notifyErrors, "n", "notify-errors", "Notify errors using the channels in configuration file")
+
+	var disableMultipart bool
+	upload.Bool(&disableMultipart, "dmp", "disable-multipart", "Disable multipart uploads")
 
 	// Parse flags
 	flaggy.Parse()
@@ -88,6 +91,7 @@ func main() {
 				Md5sum:            md5sum,
 				StopOnError:       stopOnError,
 				NotifyErrors:      notifyErrors,
+				DisableMultipart:  disableMultipart,
 			})
 
 	} else {

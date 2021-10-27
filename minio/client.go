@@ -13,12 +13,11 @@ type Client struct {
 }
 
 type Params struct {
-	Endpoint  string
-	AccessKey string
-	SecretKey string
-	Secure    bool
+	Endpoint           string
+	AccessKey          string
+	SecretKey          string
+	Secure             bool
 	InsecureSkipVerify bool
-	DisableMultipartUploads bool
 }
 
 func NewClient(params *Params) (*Client, error) {
@@ -40,4 +39,3 @@ func NewClient(params *Params) (*Client, error) {
 
 	return &c, nil
 }
-

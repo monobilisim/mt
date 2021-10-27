@@ -22,6 +22,7 @@ type UploadParams struct {
 	Md5sum            bool
 	StopOnError       bool
 	NotifyErrors      bool
+	DisableMultipart  bool
 }
 
 func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams UploadParams) {
@@ -33,7 +34,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		},
 			"Unable to open source path",
 		)
-		notify(notifier, logger, uploadParams, "Kaynak dosya/dizin açılamadı: " + uploadParams.Source)
+		notify(notifier, logger, uploadParams, "Kaynak dosya/dizin açılamadı: "+uploadParams.Source)
 	}
 	sourceAbs, err := filepath.Abs(sourceFile.Name())
 	sourceBase := filepath.Base(sourceAbs)
@@ -43,7 +44,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		},
 			"Unable to get absolute path of the source",
 		)
-		notify(notifier, logger, uploadParams, "Kaynak dosya/dizinin tam yolu belirlenemedi: " + uploadParams.Source)
+		notify(notifier, logger, uploadParams, "Kaynak dosya/dizinin tam yolu belirlenemedi: "+uploadParams.Source)
 	}
 	sourceFileInfo, err := sourceFile.Stat()
 	if err != nil {
@@ -52,7 +53,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		},
 			"Unable to stat source path",
 		)
-		notify(notifier, logger, uploadParams, "Kaynak dosya/dizin bilgileri alınamadı: " + uploadParams.Source)
+		notify(notifier, logger, uploadParams, "Kaynak dosya/dizin bilgileri alınamadı: "+uploadParams.Source)
 	}
 	sourceIsDir := sourceFileInfo.IsDir()
 	logger.DebugWithFields(map[string]interface{}{
@@ -82,7 +83,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 	c, err := NewClient(&serverParams)
 	if err != nil {
 		logger.Fatal(err)
-		notify(notifier, logger, uploadParams, "MinIO client oluşturulamadı: " + err.Error())
+		notify(notifier, logger, uploadParams, "MinIO client oluşturulamadı: "+err.Error())
 	}
 	logger.DebugWithFields(map[string]interface{}{
 		"client": c.Client,
@@ -99,7 +100,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		sourceFiles, err = getFiles(sourceAbs)
 		if err != nil {
 			logger.Fatal(err)
-			notify(notifier, logger, uploadParams, sourceAbs + " dizinindeki dosyalar alınamadı.")
+			notify(notifier, logger, uploadParams, sourceAbs+" dizinindeki dosyalar alınamadı.")
 		}
 	} else {
 		sourceFiles = append(sourceFiles, sourceAbs)
@@ -112,24 +113,24 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		objectName := objectNamePrefix + strings.TrimPrefix(file, sourcePrefix)
 
 		logger.DebugWithFields(map[string]interface{}{
-			"file": file,
+			"file":       file,
 			"objectName": objectName,
 		},
-		"File will be uploaded",
+			"File will be uploaded",
 		)
 
 		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{
-			DisableMultipart: serverParams.DisableMultipartUploads,
+			DisableMultipart: uploadParams.DisableMultipart,
 		})
 
 		if err != nil {
 			errorOrFatal(logger, notifier, uploadParams,
 				map[string]interface{}{
-				"file": file,
-				"error": err,
-			},
-				"`" + file + "` konumundaki dosya MinIO'ya yüklenemedi. (Alınan hata: `" + err.Error() + "`) Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
-			"Unable to upload file")
+					"file":  file,
+					"error": err,
+				},
+				"`"+file+"` konumundaki dosya MinIO'ya yüklenemedi. (Alınan hata: `"+err.Error()+"`) Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
+				"Unable to upload file")
 			continue
 		}
 		logger.InfoWithFields(map[string]interface{}{
@@ -139,41 +140,40 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		)
 		logger.DebugWithFields(structs.Map(uploadInfo), "File uploaded")
 
-
 		if uploadParams.Md5sum {
 			md5sum, err := md5sum(file)
 			if err != nil {
 				errorOrFatal(logger, notifier, uploadParams,
 					map[string]interface{}{
-					"file": file,
-					"error": err,
-				},
-					"`" + file + "` konumundaki dosya MinIO'ya yüklendi, ancak MD5 hash kontrolü için lokal dosyanın hash'i alınamadı. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
-				"Unable to get md5sum of the file")
+						"file":  file,
+						"error": err,
+					},
+					"`"+file+"` konumundaki dosya MinIO'ya yüklendi, ancak MD5 hash kontrolü için lokal dosyanın hash'i alınamadı. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
+					"Unable to get md5sum of the file")
 				continue
 			}
 
 			if strings.Contains(uploadInfo.ETag, "-") {
 				logger.WarnWithFields(map[string]interface{}{
 					"md5sum": md5sum,
-					"Etag": uploadInfo.ETag,
+					"Etag":   uploadInfo.ETag,
 				},
-				"Etag is not a valid md5sum (probably because file uploaded with multipart method). No md5sum validation will be made for this file.",
+					"Etag is not a valid md5sum (probably because file uploaded with multipart method). No md5sum validation will be made for this file.",
 				)
 			} else if md5sum != uploadInfo.ETag {
 				errorOrFatal(logger, notifier, uploadParams,
 
 					map[string]interface{}{
-					"md5sum": md5sum,
-					"ETag": uploadInfo.ETag,
+						"md5sum": md5sum,
+						"ETag":   uploadInfo.ETag,
 					},
-					"`" + file + "` konumundaki dosya MinIO'ya yüklendi, ancak yüklenen dosya ile lokal dosyanın MD5 hash'leri aynı değil. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
-				"md5sums don't match")
+					"`"+file+"` konumundaki dosya MinIO'ya yüklendi, ancak yüklenen dosya ile lokal dosyanın MD5 hash'leri aynı değil. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
+					"md5sums don't match")
 				continue
 			} else {
 				logger.DebugWithFields(map[string]interface{}{
 					"md5sum": md5sum,
-					"ETag": uploadInfo.ETag,
+					"ETag":   uploadInfo.ETag,
 				},
 					"md5sums match",
 				)
@@ -187,7 +187,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 					logger.InfoWithFields(map[string]interface{}{
 						"file": file,
 					},
-					"Source file removed",
+						"Source file removed",
 					)
 				}
 			}
@@ -198,7 +198,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 	notUploaded := len(sourceFiles) - len(uploaded)
 
 	if notUploaded > 0 {
-		notify(notifier, logger, uploadParams, strconv.Itoa(notUploaded) + " dosya MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
+		notify(notifier, logger, uploadParams, strconv.Itoa(notUploaded)+" dosya MinIO'ya yüklenemedi. Lütfen logu kontrol edin.")
 	}
 
 }
