@@ -18,6 +18,7 @@ type Params struct {
 	SecretKey string
 	Secure    bool
 	InsecureSkipVerify bool
+	DisableMultipartUploads bool
 }
 
 func NewClient(params *Params) (*Client, error) {

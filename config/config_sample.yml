@@ -5,12 +5,14 @@ minio:
     secretKey:
     secure: false
     insecureSkipVerify: false
+    disableMultipartUploads: false
   server2:
     endpoint: 10.11.50.55:9000
     accessKey:
     secretKey:
     secure: true
     insecureSkipVerify: true
+    disableMultipartUploads: false
 log:
   level: debug # debug, info, warn or error (default: info)
   file: /var/log/mt.log # if empty, file logging will be disabled

@@ -118,7 +118,9 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 		"File will be uploaded",
 		)
 
-		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{})
+		uploadInfo, err := c.FPutObject(context.Background(), bucket, objectName, file, minio.PutObjectOptions{
+			DisableMultipart: serverParams.DisableMultipartUploads,
+		})
 
 		if err != nil {
 			errorOrFatal(logger, notifier, uploadParams,
@@ -150,7 +152,7 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 				"Unable to get md5sum of the file")
 				continue
 			}
-
+			
 			if md5sum != uploadInfo.ETag {
 				errorOrFatal(logger, notifier, uploadParams,
 
