@@ -152,8 +152,15 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 				"Unable to get md5sum of the file")
 				continue
 			}
-			
-			if md5sum != uploadInfo.ETag {
+
+			if strings.Contains(uploadInfo.ETag, "-") {
+				logger.WarnWithFields(map[string]interface{}{
+					"md5sum": md5sum,
+					"Etag": uploadInfo.ETag,
+				},
+				"Etag is not a valid md5sum (probably because file uploaded with multipart method). No md5sum validation will be made for this file.",
+				)
+			} else if md5sum != uploadInfo.ETag {
 				errorOrFatal(logger, notifier, uploadParams,
 
 					map[string]interface{}{
@@ -163,14 +170,14 @@ func Upload(logger Logger, notifier Notifier, serverParams Params, uploadParams 
 					"`" + file + "` konumundaki dosya MinIO'ya yüklendi, ancak yüklenen dosya ile lokal dosyanın MD5 hash'leri aynı değil. Yükleme işleminde `--stop-on-error` parametresi kullanıldığı için devam edilmeyecek.",
 				"md5sums don't match")
 				continue
+			} else {
+				logger.DebugWithFields(map[string]interface{}{
+					"md5sum": md5sum,
+					"ETag": uploadInfo.ETag,
+				},
+					"md5sums match",
+				)
 			}
-
-			logger.DebugWithFields(map[string]interface{}{
-				"md5sum": md5sum,
-				"ETag": uploadInfo.ETag,
-			},
-				"md5sums match",
-			)
 
 			if uploadParams.RemoveSourceFiles {
 				err = os.Remove(file)
