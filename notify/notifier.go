@@ -4,8 +4,6 @@ import (
 	"net"
 	"os"
 	"strings"
-
-	"github.com/badkaktus/gorocket"
 )
 
 type Params struct {
@@ -14,11 +12,11 @@ type Params struct {
 
 type Notifier struct {
 	*Params
-	*gorocket.Client
+	*Client
 }
 
 func NewNotifier(params *Params) *Notifier {
-	client := gorocket.NewClient(params.Url)
+	client := NewClient(params.Url)
 	return &Notifier{params, client}
 }
 
@@ -34,10 +32,10 @@ func (n *Notifier) Notify(text string) error {
 	text = "*[ " + hostname + "* | _" + strings.Join(ipAddresses, " - ") + "_ *]*\n\n" + text
 	text = text + "\n\n*Komut:* `" + strings.Join(os.Args, " ") + "`"
 
-	message := gorocket.HookMessage{
+	message := HookMessage{
 		Text: text,
 	}
-	_, err = n.Hooks(&message, "")
+	_, err = n.Hooks(&message)
 	return err
 }
 
