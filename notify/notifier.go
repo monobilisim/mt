@@ -1,15 +1,15 @@
 package notify
 
 import (
-	"github.com/badkaktus/gorocket"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/badkaktus/gorocket"
 )
 
 type Params struct {
 	Url string
-	Token string
 }
 
 type Notifier struct {
@@ -37,7 +37,7 @@ func (n *Notifier) Notify(text string) error {
 	message := gorocket.HookMessage{
 		Text: text,
 	}
-	_, err = n.Hooks(&message, n.Params.Token)
+	_, err = n.Hooks(&message, "")
 	return err
 }
 

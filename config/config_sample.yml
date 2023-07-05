@@ -19,4 +19,3 @@ log:
   maxAges: 30 # maximum log file age in days (default: 30)
 notify:
   url: https://chat.mono.net.tr
-  token: 1234
