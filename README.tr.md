@@ -8,7 +8,7 @@
 [![Readme in Turkish](https://img.shields.io/badge/Readme-Turkish-red)](README.tr.md)
 
 <div align="center"> 
-<a href="https://monobilisim.com.tr/">
+<a href="https://mono.net.tr/">
   <img src="https://monobilisim.com.tr/images/mono-bilisim.svg" width="340"/>
 </a>
 
@@ -80,4 +80,4 @@ mt, GPL-3.0 lisanslıdır. Detaylar için [LICENSE](LICENSE) dosyasına bakını
 [issues-shield]: https://img.shields.io/github/issues/monobilisim/mt.svg?style=for-the-badge
 [issues-url]: https://github.com/monobilisim/mt/issues
 [license-shield]: https://img.shields.io/github/license/monobilisim/mt.svg?style=for-the-badge
-[license-url]: https://github.com/monobilisim/mt/blob/master/LICENSE.txt
+[license-url]: https://github.com/monobilisim/mt/blob/master/LICENSE
