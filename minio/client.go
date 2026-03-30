@@ -18,12 +18,14 @@ type Params struct {
 	SecretKey          string
 	Secure             bool
 	InsecureSkipVerify bool
+	Region             string
 }
 
 func NewClient(params *Params) (*Client, error) {
 	minioOptions := &minio.Options{
 		Creds:  credentials.NewStaticV4(params.AccessKey, params.SecretKey, ""),
 		Secure: params.Secure,
+		Region: params.Region,
 	}
 	if params.InsecureSkipVerify {
 		customTransport := http.DefaultTransport.(*http.Transport).Clone()
